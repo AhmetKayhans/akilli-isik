@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Akıllı Işık</title>
+  
+  <!-- iPhone Ana Ekran Ayarları -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Işık">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: #121216;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .status {
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      letter-spacing: 1px;
+      transition: color 0.3s;
+    }
+    .power-btn {
+      width: 170px;
+      height: 170px;
+      border-radius: 50%;
+      border: 4px solid #2a2a35;
+      background: #1e1e26;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transition: all 0.3s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .power-btn:active {
+      transform: scale(0.92);
+    }
+    .power-icon {
+      width: 65px;
+      height: 65px;
+      fill: #555;
+      transition: fill 0.3s ease;
+    }
+    /* Işık AÇIK Teması */
+    body.is-on .power-btn {
+      border-color: #00e676;
+      box-shadow: 0 0 45px rgba(0, 230, 118, 0.45);
+    }
+    body.is-on .power-icon {
+      fill: #00e676;
+    }
+    body.is-on .status {
+      color: #00e676;
+    }
+    /* Işık KAPALI Teması */
+    body.is-off .status {
+      color: #777;
+    }
+  </style>
+</head>
+<body class="is-off">
+
+  <div class="status" id="statusText">IŞIK KAPALI</div>
+
+  <div class="power-btn" id="btn">
+    <svg class="power-icon" viewBox="0 0 24 24">
+      <path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42A7.92 7.92 0 0 1 20 12c0 4.41-3.59 8-8 8s-8-3.59-8-8c0-2.52 1.17-4.77 3-6.24L5.58 4.34A9.939 9.939 0 0 0 2 12c0 5.52 4.48 10 10 10s10-4.48 10-10c0-2.76-1.12-5.26-3.17-6.83z"/>
+    </svg>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-database.js";
+
+    const firebaseConfig = {
+      databaseURL: "https://akilli-isik-4b5be-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const isikRef = ref(db, 'isik');
+
+    let currentStatus = false;
+    const body = document.body;
+    const statusText = document.getElementById("statusText");
+    const btn = document.getElementById("btn");
+
+    // Canlı Takip (ESP veya başka cihaz değiştirirse de güncellenir)
+    onValue(isikRef, (snapshot) => {
+      currentStatus = snapshot.val() === true;
+      if (currentStatus) {
+        body.className = "is-on";
+        statusText.innerText = "IŞIK AÇIK";
+      } else {
+        body.className = "is-off";
+        statusText.innerText = "IŞIK KAPALI";
+      }
+    });
+
+    // Butona basınca durumu tersine çevir
+    btn.addEventListener("click", () => {
+      set(isikRef, !currentStatus);
+    });
+  </script>
+</body>
+</html>
